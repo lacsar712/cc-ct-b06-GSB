@@ -8,6 +8,7 @@ import {
   login,
   setSession,
 } from "./api";
+import SignoffDesk from "./SignoffDesk";
 
 const statusLabel = {
   pending: "待复核",
@@ -22,8 +23,9 @@ const roleLabel = {
 
 function readHash() {
   const raw = (location.hash || "#/").replace(/^#/, "") || "/";
-  const m = raw.match(/^\/detail\/(\d+)/);
-  if (m) return { name: "detail", id: Number(m[1]) };
+  const mDetail = raw.match(/^\/detail\/(\d+)/);
+  if (mDetail) return { name: "detail", id: Number(mDetail[1]) };
+  if (raw === "/desk") return { name: "desk", id: null };
   return { name: "home", id: null };
 }
 
@@ -43,6 +45,10 @@ function App() {
 
   function goHome() {
     location.hash = "#/";
+  }
+
+  function goDesk() {
+    location.hash = "#/desk";
   }
 
   function goDetail(id) {
@@ -80,9 +86,16 @@ function App() {
     window.addEventListener("hashchange", onHash);
     if (user()) {
       if (route().name === "detail") loadDetail(route().id);
-      else loadRows();
+      else if (route().name === "home") loadRows();
     }
-    return () => window.removeEventListener("hashchange", onHash);
+    // 总览轮询：新单切入复核中即可看到认领人。
+    const timer = setInterval(() => {
+      if (user() && route().name === "home") loadRows();
+    }, 3000);
+    return () => {
+      window.removeEventListener("hashchange", onHash);
+      clearInterval(timer);
+    };
   });
 
   createEffect(() => {
@@ -149,6 +162,16 @@ function App() {
               }}
             >
               复核总览
+            </a>
+            <a
+              href="#/desk"
+              class={route().name === "desk" ? "active" : ""}
+              onClick={(e) => {
+                e.preventDefault();
+                goDesk();
+              }}
+            >
+              落款台
             </a>
           </nav>
         </Show>
@@ -235,6 +258,7 @@ function App() {
                   <th>刀具</th>
                   <th>刀补 µm</th>
                   <th>状态</th>
+                  <th>认领人/落款</th>
                   <th>结论</th>
                   <th>提交时间</th>
                   <th></th>
@@ -247,6 +271,7 @@ function App() {
                       <td>{row.tool_code}</td>
                       <td>{row.offset_um}</td>
                       <td>{statusLabel[row.status] || row.status}</td>
+                      <td>{row.claimant_name || "—"}</td>
                       <td class={row.verdict === "合格" ? "pass" : row.verdict === "超差" ? "fail" : ""}>
                         {row.verdict || "—"}
                       </td>
@@ -267,6 +292,10 @@ function App() {
           </section>
         </Show>
 
+        <Show when={route().name === "desk"}>
+          <SignoffDesk user={user()} />
+        </Show>
+
         <Show when={route().name === "detail"}>
           <section class="card">
             <div class="toolbar">
@@ -282,6 +311,14 @@ function App() {
                   <p>刀具：{d().tool_code}</p>
                   <p>刀补 µm：{d().offset_um}</p>
                   <p>状态：{statusLabel[d().status] || d().status}</p>
+                  <p>
+                    认领人/落款：
+                    <strong>{d().claimant_name || "—"}</strong>
+                  </p>
+                  <p>
+                    认领时间：
+                    {d().claimed_at ? new Date(d().claimed_at).toLocaleString() : "—"}
+                  </p>
                   <p class={d().verdict === "合格" ? "pass" : d().verdict === "超差" ? "fail" : ""}>
                     结论：{d().verdict || "—"}
                   </p>

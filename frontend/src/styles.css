@@ -98,6 +98,33 @@ input {
   border-radius: 6px;
 }
 
+select {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #c5ceda;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #e8edf5;
+  color: #5a6478;
+  font-size: 0.8rem;
+}
+
+.badge.ok {
+  background: #dcfce7;
+  color: #15803d;
+}
+
 button {
   padding: 0.55rem 1rem;
   border: none;

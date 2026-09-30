@@ -46,8 +46,11 @@ export function login(username, password) {
   });
 }
 
-export function fetchSubmissions() {
-  return request("/submissions");
+export function fetchSubmissions(params = {}) {
+  const qs = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== "" && v !== null && v !== undefined)
+  ).toString();
+  return request(`/submissions${qs ? `?${qs}` : ""}`);
 }
 
 export function fetchSubmission(id) {
@@ -58,5 +61,21 @@ export function createSubmission(tool_code, offset_um) {
   return request("/submissions", {
     method: "POST",
     body: JSON.stringify({ tool_code, offset_um: Number(offset_um) }),
+  });
+}
+
+export function fetchClaimants() {
+  return request("/claimants");
+}
+
+export function fetchReassignments(claimantId) {
+  const qs = claimantId ? `?claimant_id=${encodeURIComponent(claimantId)}` : "";
+  return request(`/reassignments${qs}`);
+}
+
+export function reassignSubmission(id, to_claimant_id, note) {
+  return request(`/submissions/${id}/reassign`, {
+    method: "POST",
+    body: JSON.stringify({ to_claimant_id, note }),
   });
 }
