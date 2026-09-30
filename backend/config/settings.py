@@ -74,3 +74,8 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = int(os.environ.get("JWT_EXPIRE_HOURS", "24"))
 
 OFFSET_TOLERANCE_UM = 12
+
+# 认领（切入复核中）后停留多久再办结，留出“在途改派”窗口。
+WORKER_PROCESSING_HOLD_SECONDS = float(
+    os.environ.get("WORKER_PROCESSING_HOLD_SECONDS", "2")
+)

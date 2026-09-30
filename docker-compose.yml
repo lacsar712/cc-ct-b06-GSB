@@ -43,6 +43,9 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
       DJANGO_SECRET_KEY: cnc-offset-desk-dev-secret
+      # 认领进程落款名；切入复核中即以此名落款，在途可改派给其它认领名。
+      WORKER_NAME: worker-01
+      WORKER_PROCESSING_HOLD_SECONDS: "6"
     depends_on:
       db:
         condition: service_healthy

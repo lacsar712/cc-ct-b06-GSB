@@ -34,9 +34,20 @@ async function request(path, options = {}) {
   }
   if (!res.ok) {
     const msg = data?.detail || data?.message || `请求失败 (${res.status})`;
-    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    const err = new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    err.status = res.status;
+    throw err;
   }
   return data;
+}
+
+function qs(params) {
+  const u = new URLSearchParams();
+  Object.entries(params || {}).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") u.append(k, v);
+  });
+  const s = u.toString();
+  return s ? `?${s}` : "";
 }
 
 export function login(username, password) {
@@ -46,8 +57,8 @@ export function login(username, password) {
   });
 }
 
-export function fetchSubmissions() {
-  return request("/submissions");
+export function fetchSubmissions(params) {
+  return request(`/submissions${qs(params)}`);
 }
 
 export function fetchSubmission(id) {
@@ -59,4 +70,19 @@ export function createSubmission(tool_code, offset_um) {
     method: "POST",
     body: JSON.stringify({ tool_code, offset_um: Number(offset_um) }),
   });
+}
+
+export function fetchClaimants() {
+  return request("/claimants");
+}
+
+export function reassignSubmission(id, to_username) {
+  return request(`/submissions/${id}/reassign`, {
+    method: "POST",
+    body: JSON.stringify({ to_username }),
+  });
+}
+
+export function fetchReassignLogs(params) {
+  return request(`/reassign-logs${qs(params)}`);
 }

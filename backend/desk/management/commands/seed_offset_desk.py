@@ -25,6 +25,16 @@ class Command(BaseCommand):
                 "is_active": True,
             },
         )
+        # 认领进程身份（落款名）。worker 启动也会按 WORKER_NAME 自动建同名账号；
+        # 这里预置两个，便于在途改派演示与按人筛选。
+        for worker_name in ("worker-01", "worker-02"):
+            User.objects.update_or_create(
+                username=worker_name,
+                defaults={
+                    "role": User.Role.MACHINIST,
+                    "is_active": True,
+                },
+            )
 
         now = timezone.now()
         seeds = [
@@ -32,6 +42,7 @@ class Command(BaseCommand):
             ("T09", 20, OffsetSubmission.Verdict.FAIL),
         ]
         for tool_code, offset_um, verdict in seeds:
+            # 已办结单也带落款：认领进程写入的名字办结后原样保留。
             OffsetSubmission.objects.update_or_create(
                 tool_code=tool_code,
                 offset_um=offset_um,
@@ -39,6 +50,9 @@ class Command(BaseCommand):
                     "status": OffsetSubmission.Status.DONE,
                     "verdict": verdict,
                     "submitted_by": machinist,
+                    "claimant": machinist,
+                    "claimant_name": machinist.display_name,
+                    "claimed_at": now,
                     "reviewed_at": now,
                 },
             )
